@@ -45,7 +45,7 @@ library
   hs-source-dirs: src
 
   -- Modules exported by the library.
-  exposed-modules:     Actors, Parsers, Types
+  exposed-modules:     Parsers, Types
   
   -- Modules included in this library but not exported.
   -- other-modules:       
