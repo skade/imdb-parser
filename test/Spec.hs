@@ -77,3 +77,9 @@ main = hspec $ do
       let input = "\"#1 Single\" (2006) \t\t\t\t 2006-????\n\"#1 Single\" (2006) {Cats and Dogs (#1.4)} \t\t\t 2006\n\"#7DaysLater\" (2013) \t\t\t\t 2013-????\n"
       let result = Right [Series "#1 Single" [Episode "Cats and Dogs" (SeasonInfo 1 4) 2006 (BroadcastYear 2006)] 2006 (BroadcastYears 2006 Nothing),Series "#7DaysLater" [] 2013 (BroadcastYears 2013 Nothing)]
       (parseOnly (many' seriesParser) input) `shouldBe` result
+
+  describe "Parser.movieHeadParser" $ do
+    it "parses this pesky head of a movie line correctly" $ do
+      let input = "Libertad (Mar del Plata) (1999)"
+      let result = Right ("Libertad (Mar del Plata)", 1999)
+      (parseOnly movieHeadParser input) `shouldBe` result

@@ -96,14 +96,27 @@ pYear = do
     year <- productionYearParser
     return year
 
-data Expression = ConsExpr Expression Expression | TitleText Text | ProdYear ProductionYear deriving(Show,Eq)
+data Expression = ConsExpr Text Expression | ProdYear ProductionYear deriving(Show,Eq)
 
-movieHeadParser :: Parser Expression
-movieHeadParser = do
+movieHeadParser' :: Parser Expression
+movieHeadParser' = do
     val <- pYear `eitherP` fragment
     either stop continue val
     where
       stop v = return $ ProdYear v
       continue v = do
-        next <- movieHeadParser
-        return $ ConsExpr (TitleText v) next
+        next <- movieHeadParser'
+        return $ ConsExpr v next
+
+construct :: Expression -> (Title, ProductionYear)
+construct e = (strip(title e), year e)
+    where
+      title (ConsExpr t e) = (t `snoc` ' ') `append` (title e)
+      title (ProdYear _) = ""
+      year (ConsExpr _ e) = year e
+      year (ProdYear y) = y
+
+movieHeadParser :: Parser (Title, ProductionYear)
+movieHeadParser = do
+    expr <- movieHeadParser'
+    return $ construct expr
