@@ -13,11 +13,6 @@ data Episode = Episode { title :: Title
                        , broadcastYear :: BroadcastInfo
                        } deriving (Show, Eq)
 
-data Series = Series  {  name :: Title
-                       , episodes :: [Episode]
-                       , productionYear :: ProductionYear
-                       , broadcastYears :: BroadcastInfo
-                       } deriving (Show, Eq)
 
 type Title = Text
 type Year = Integer
@@ -26,3 +21,20 @@ type ProductionYear = Year
 data BroadcastInfo = BroadcastYear Year
                    | BroadcastYears Year (Maybe Year)
                      deriving (Show, Eq)
+
+data Series = Series { name :: Title
+                     , episodes :: [Episode]
+                     , productionYear :: ProductionYear
+                     , broadcastYears :: BroadcastInfo
+                     } deriving (Show, Eq)
+
+data Movie = Movie { mtitle :: Title
+                   , productionY :: ProductionYear
+                   , releaseY :: Year
+                   , releaseType :: ReleaseType
+                   }
+
+data VideoGame = VideoGame { gametitle :: Title,
+                             productYear :: ProductionYear,
+                             releaseYear :: Year }
+data ReleaseType = Cinema | Video | TV

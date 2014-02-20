@@ -6,6 +6,8 @@ import Data.Attoparsec.Text
 import Data.Text
 import Data.Attoparsec.Combinator
 import Control.Applicative
+import Data.Either
+import Data.Char (isSpace)
 
 seasonInfoParser :: Parser SeasonInfo
 seasonInfoParser = do
@@ -26,13 +28,14 @@ episodeInfoParser = do
 
 productionYearParser :: Parser ProductionYear
 productionYearParser = do
+    skipSpace
     char '('
     year <- decimal
     char ')'
     return year
 
 broadcastYearParser :: Parser BroadcastInfo
-broadcastYearParser = do 
+broadcastYearParser = do
     y <- decimal
     return $ BroadcastYear y
 
@@ -65,7 +68,7 @@ seriesParser = do
     prod <- productionYearParser
     skipSpace
     byears <- broadcastInfoParser
-    char '\n'
+    endOfLine
     episodes <- many' episodeParser
     return $ Series t episodes prod byears
 
@@ -78,5 +81,29 @@ episodeParser = do
     (t,sinfo) <- episodeInfoParser
     skipSpace
     byear <- broadcastInfoParser
-    char '\n'
+    endOfLine
     return $ Episode t sinfo prod byear
+
+fragment :: Parser Text
+fragment = do
+    skipSpace
+    t <- takeTill isSpace
+    return t
+
+pYear :: Parser ProductionYear
+pYear = do
+    skipSpace
+    year <- productionYearParser
+    return year
+
+data Expression = ConsExpr Expression Expression | TitleText Text | ProdYear ProductionYear deriving(Show,Eq)
+
+movieHeadParser :: Parser Expression
+movieHeadParser = do
+    val <- pYear `eitherP` fragment
+    either stop continue val
+    where
+      stop v = return $ ProdYear v
+      continue v = do
+        next <- movieHeadParser
+        return $ ConsExpr (TitleText v) next
