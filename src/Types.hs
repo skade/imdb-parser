@@ -32,9 +32,6 @@ data Movie = Movie { mtitle :: Title
                    , productionY :: ProductionYear
                    , releaseY :: Year
                    , releaseType :: ReleaseType
-                   }
+                   } deriving (Show, Eq)
 
-data VideoGame = VideoGame { gametitle :: Title,
-                             productYear :: ProductionYear,
-                             releaseYear :: Year }
-data ReleaseType = Cinema | Video | TV
+data ReleaseType = Cinema | Video | TV | VideoGame deriving (Show, Eq)

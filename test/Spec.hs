@@ -83,3 +83,14 @@ main = hspec $ do
       let input = "Libertad (Mar del Plata) (1999)"
       let result = Right ("Libertad (Mar del Plata)", 1999)
       (parseOnly movieHeadParser input) `shouldBe` result
+
+  describe "Parsers.movieParser" $ do
+    it "parses a TV movie" $ do
+      let input = "Libertad (Mar del Plata) (1999) (TV) \t\t\t\t 1999\n"
+      let result = Right (Movie "Libertad (Mar del Plata)" 1999 1999 TV)
+      (parseOnly movieParser input) `shouldBe` result
+
+    it "parses a cinema movie" $ do
+      let input = "Fight Club (1999) \t\t\t\t 1999\n"
+      let result = Right (Movie "Fight Club" 1999 1999 Cinema)
+      (parseOnly movieParser input) `shouldBe` result

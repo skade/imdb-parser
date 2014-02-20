@@ -96,27 +96,44 @@ pYear = do
     year <- productionYearParser
     return year
 
-data Expression = ConsExpr Text Expression | ProdYear ProductionYear deriving(Show,Eq)
+data MovieHead = Cons Text MovieHead | Final ProductionYear deriving(Show,Eq)
 
-movieHeadParser' :: Parser Expression
+movieHeadParser' :: Parser MovieHead
 movieHeadParser' = do
     val <- pYear `eitherP` fragment
     either stop continue val
     where
-      stop v = return $ ProdYear v
+      stop v = return $ Final v
       continue v = do
         next <- movieHeadParser'
-        return $ ConsExpr v next
+        return $ Cons v next
 
-construct :: Expression -> (Title, ProductionYear)
+construct :: MovieHead -> (Title, ProductionYear)
 construct e = (strip(title e), year e)
     where
-      title (ConsExpr t e) = (t `snoc` ' ') `append` (title e)
-      title (ProdYear _) = ""
-      year (ConsExpr _ e) = year e
-      year (ProdYear y) = y
+      title (Cons t e) = (t `snoc` ' ') `append` (title e)
+      title (Final y) = ""
+      year (Cons _ e) = year e
+      year (Final y) = y
 
 movieHeadParser :: Parser (Title, ProductionYear)
 movieHeadParser = do
     expr <- movieHeadParser'
     return $ construct expr
+
+releaseTypeParser :: Parser ReleaseType
+releaseTypeParser = do
+      skipSpace
+      (string "(TV)" >> return TV)
+      <|> (string "(VG)" >> return VideoGame)
+      <|> (string "(V)" >> return Video)
+      <|> (string "" >> return Cinema)
+
+movieParser :: Parser Movie
+movieParser = do
+    (t,p) <- movieHeadParser
+    r <- releaseTypeParser
+    skipSpace
+    ry <- decimal
+    endOfLine
+    return $ Movie t p ry r
