@@ -99,14 +99,8 @@ pYear = do
 data MovieHead = Cons Text MovieHead | Final ProductionYear deriving(Show,Eq)
 
 movieHeadParser' :: Parser MovieHead
-movieHeadParser' = do
-    val <- pYear `eitherP` fragment
-    either stop continue val
-    where
-      stop v = return $ Final v
-      continue v = do
-        next <- movieHeadParser'
-        return $ Cons v next
+movieHeadParser' = (Final <$> pYear) <|>
+                   (Cons <$> (fragment) <*> movieHeadParser')
 
 construct :: MovieHead -> (Title, ProductionYear)
 construct e = (strip(title e), year e)
