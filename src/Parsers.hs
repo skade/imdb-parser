@@ -9,7 +9,11 @@ module Parsers (seasonInfoParser,
                 seriesParser,
                 movieHeadParser,
                 movieParser) where
-import Types
+import Types.SeasonInfo
+import Types.Episode
+import Types.Movie
+import Types.Series
+import Types.Simple
 import Data.Attoparsec.Text.Lazy
 import Data.Text
 import Data.Attoparsec.Combinator

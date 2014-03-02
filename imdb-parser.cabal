@@ -45,7 +45,12 @@ library
   hs-source-dirs: src
 
   -- Modules exported by the library.
-  exposed-modules:     Parsers, Types
+  exposed-modules:     Parsers,
+                       Types.SeasonInfo,
+                       Types.Episode,
+                       Types.Movie,
+                       Types.Series,
+                       Types.Simple
   
   -- Modules included in this library but not exported.
   -- other-modules:       

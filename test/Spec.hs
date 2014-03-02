@@ -5,7 +5,12 @@ import Test.Hspec
 import Test.QuickCheck
 import Control.Exception (evaluate)
 import Parsers
-import Types
+import Types.SeasonInfo
+import Types.Episode
+import Types.Simple
+import Types.Movie
+import Types.Series
+
 import Data.Attoparsec.Text
 
 main :: IO ()
