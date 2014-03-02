@@ -3,7 +3,7 @@ import Data.Text
 
 type Title = Text
 type Year = Integer
-type ProductionYear = Year
+type ProductionYear = Maybe Year
 
 data BroadcastInfo = BroadcastYear Year
                    | BroadcastYears Year (Maybe Year)

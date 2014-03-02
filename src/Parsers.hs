@@ -37,7 +37,8 @@ episodeInfoParser = createTuple
       title = manyTill anyChar (try (string "(#"))
 
 productionYearParser :: Parser ProductionYear
-productionYearParser = skipSpace *> char '(' *> decimal <* char ')'
+productionYearParser =   (Just <$> (skipSpace *> char '(' *> decimal <* char ')'))
+                      <|> ((skipSpace *> string "(????)") >> return Nothing)
 
 broadcastYearParser :: Parser BroadcastInfo
 broadcastYearParser = BroadcastYear <$> decimal
