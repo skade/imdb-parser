@@ -97,12 +97,10 @@ movieHeadParser :: Parser (Title, ProductionYear)
 movieHeadParser = construct <$> movieHeadParser'
 
 releaseTypeParser :: Parser ReleaseType
-releaseTypeParser = do
-      skipSpace
-      (string "(TV)" >> return TV)
-      <|> (string "(VG)" >> return VideoGame)
-      <|> (string "(V)" >> return Video)
-      <|> (string "" >> return Cinema)
+releaseTypeParser = skipSpace *> (string "(TV)" >> return TV)
+                              <|> (string "(VG)" >> return VideoGame)
+                              <|> (string "(V)" >> return Video)
+                              <|> (string "" >> return Cinema)
 
 movieParser :: Parser Movie
 movieParser = createMovie
