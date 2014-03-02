@@ -49,7 +49,9 @@ library
                        Types.SeasonInfo,
                        Types.Episode,
                        Types.Movie,
+                       Types.VideoGame,
                        Types.Series,
+                       Types.Product,
                        Types.Simple
   
   -- Modules included in this library but not exported.
