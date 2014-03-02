@@ -39,11 +39,11 @@ episodeInfoParser = createTuple
       title = manyTill anyChar (try (string "(#"))
 
 productionYearParser :: Parser ProductionYear
-productionYearParser =   (Just <$> (skipSpace *> char '(' *> decimal <* char ')'))
+productionYearParser =   (Just <$> (skipSpace *> char '(' *> decimal <* (char ')' <|> char '/')))
                       <|> ((skipSpace *> string "(????)") >> return Nothing)
 
 broadcastYearParser :: Parser BroadcastInfo
-broadcastYearParser = BroadcastYear <$> decimal
+broadcastYearParser = BroadcastYear <$> ((Just <$> decimal) <|> (string "????" >> return Nothing))
 
 broadcastYearsParser :: Parser BroadcastInfo
 broadcastYearsParser = BroadcastYears
@@ -62,19 +62,23 @@ seriesTitleParser :: Parser Title
 seriesTitleParser = pack <$> (char '"' *> (manyTill anyChar (try (char '"'))))
 
 seriesParser :: Parser P.Product
-seriesParser = P.Series <$> (Series
+seriesParser = P.Series <$> (createSeries
                <$> (seriesTitleParser <* skipSpace)
                <*> (productionYearParser <* skipSpace)
+               <*> (suspensionParser <* skipSpace)
                <*> (broadcastInfoParser <* endOfLine)
                <*> (many' episodeParser))
+  where
+    createSeries t p s b e = Series t p b e s
 
 episodeParser :: Parser Episode
 episodeParser = createEpisode
                 <$> (seriesTitleParser *> skipSpace *> productionYearParser)
                 <*> (skipSpace *> episodeInfoParser)
+                <*> (skipSpace *> suspensionParser)
                 <*> (skipSpace *> broadcastInfoParser <* endOfLine)
   where
-    createEpisode prodYear (title,sinfo) byear = Episode title sinfo prodYear byear
+    createEpisode prodYear (title,sinfo) s byear = Episode title sinfo prodYear byear s
 
 fragment :: Parser Text
 fragment = skipSpace *> takeTill isSpace
@@ -109,9 +113,14 @@ movieishParser :: Parser P.Product
 movieishParser = createProduct
               <$> movieHeadParser
               <*> (releaseTypeParser <* skipSpace)
-              <*> (decimal <* endOfLine)
+              <*> (suspensionParser <* skipSpace)
+              <*> (((Just <$> decimal) <|> (string "????" >> return Nothing)) <* endOfLine)
     where
-      createProduct (t,p) Cinema ry = P.Cinema $ Movie t p ry
-      createProduct (t,p) TV ry = P.TV $ Movie t p ry
-      createProduct (t,p) Video ry = P.Video $ Movie t p ry
-      createProduct (t,p) VideoGame ry = P.VideoGame $ V.VideoGame t p ry
+      createProduct (t,p) Cinema s ry = P.Cinema $ Movie t p ry s
+      createProduct (t,p) TV s ry = P.TV $ Movie t p ry s
+      createProduct (t,p) Video s ry = P.Video $ Movie t p ry s
+      createProduct (t,p) VideoGame s ry = P.VideoGame $ V.VideoGame t p ry s
+
+suspensionParser :: Parser Bool
+suspensionParser = skipSpace *> ((string "{{SUSPENDED}}" >> return True)
+                                 <|> (string "" >> return False))

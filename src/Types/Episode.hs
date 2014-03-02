@@ -6,4 +6,5 @@ data Episode = Episode { title :: Title
                        , seasonInfo :: SeasonInfo
                        , productionYear :: ProductionYear
                        , broadcastYear :: BroadcastInfo
+                       , isSuspended :: Bool
                        } deriving (Show, Eq)

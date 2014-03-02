@@ -50,7 +50,7 @@ main = hspec $ do
       (parseOnly broadcastInfoParser "1994-1995") `shouldBe` broadCastYears
 
     it "parses a year without brackets" $ do
-      (parseOnly broadcastInfoParser "1983") `shouldBe` Right (BroadcastYear 1983)
+      (parseOnly broadcastInfoParser "1983") `shouldBe` Right (BroadcastYear $ Just 1983)
 
   describe "Parsers.seriesTitleParser" $ do
     it "parses a title within '\"'" $ do
@@ -59,34 +59,39 @@ main = hspec $ do
   describe "Parser.episodeParser" $ do
     it "parses an episode line" $ do
       let input = "\"#1 Single\" (2006) {Cats and Dogs (#1.4)} \t\t\t 2006\n"
-      let result = Right (Episode "Cats and Dogs" (SeasonInfo 1 4) (Just 2006) (BroadcastYear 2006))
+      let result = Right (Episode "Cats and Dogs" (SeasonInfo 1 4) (Just 2006) (BroadcastYear $ Just 2006) False)
+      (parseOnly episodeParser input) `shouldBe` result
+
+    it "parses a suspended episode line" $ do
+      let input = "\"'Til Death\" (2006) {Family Vacation (#3.10)} {{SUSPENDED}}     ????\n"
+      let result = Right (Episode "Family Vacation" (SeasonInfo 3 10) (Just 2006) (BroadcastYear Nothing) True)
       (parseOnly episodeParser input) `shouldBe` result
 
   describe "Parser.seriesTitleParser" $ do
     it "parses a series line" $ do
       let input = "\"!Next?\" (1994) \t\t\t\t 1994-1995\n"
-      let result = Right (P.Series (Series "!Next?" (Just 1994) (BroadcastYears 1994 (Just 1995)) []))
+      let result = Right (P.Series (Series "!Next?" (Just 1994) (BroadcastYears 1994 (Just 1995)) [] False))
       (parseOnly seriesParser input) `shouldBe` result
 
     it "parses a series line with a single year" $ do
       let input = "\"!Next?\" (1994) \t\t\t\t 1994\n"
-      let result = Right (P.Series (Series "!Next?" (Just 1994) (BroadcastYear 1994) []))
+      let result = Right (P.Series (Series "!Next?" (Just 1994) (BroadcastYear $ Just 1994) [] False))
       (parseOnly seriesParser input) `shouldBe` result
 
     it "parses a series line and an episodes line" $ do
       let input = "\"#1 Single\" (2006) \t\t\t\t 2006-????\n\"#1 Single\" (2006) {Cats and Dogs (#1.4)} \t\t\t 2006\n"
-      let result = Right (P.Series (Series "#1 Single" (Just 2006) (BroadcastYears 2006 Nothing) [Episode "Cats and Dogs" (SeasonInfo 1 4) (Just 2006) (BroadcastYear 2006)]))
+      let result = Right (P.Series (Series "#1 Single" (Just 2006) (BroadcastYears 2006 Nothing) [Episode "Cats and Dogs" (SeasonInfo 1 4) (Just 2006) (BroadcastYear $ Just 2006) False] False))
       (parseOnly seriesParser input) `shouldBe` result
 
     it "parses a series line and an episodes line and doesn't continue to the next line" $ do
       let input = "\"#1 Single\" (2006) \t\t\t\t 2006-????\n\"#1 Single\" (2006) {Cats and Dogs (#1.4)} \t\t\t 2006\n\"#7DaysLater\" (2013) \t\t\t\t 2013-????"
-      let result = Right (P.Series (Series "#1 Single" (Just 2006) (BroadcastYears 2006 Nothing) [Episode "Cats and Dogs" (SeasonInfo 1 4) (Just 2006) (BroadcastYear 2006)]))
+      let result = Right (P.Series (Series "#1 Single" (Just 2006) (BroadcastYears 2006 Nothing) [Episode "Cats and Dogs" (SeasonInfo 1 4) (Just 2006) (BroadcastYear $ Just 2006) False] False))
       (parseOnly seriesParser input) `shouldBe` result
 
   describe "many' Parsers.seriesParser" $ do
     it "parses multiple series" $ do
       let input = "\"#1 Single\" (2006) \t\t\t\t 2006-????\n\"#1 Single\" (2006) {Cats and Dogs (#1.4)} \t\t\t 2006\n\"#7DaysLater\" (2013) \t\t\t\t 2013-????\n"
-      let result = Right [P.Series (Series "#1 Single" (Just 2006) (BroadcastYears 2006 Nothing) [Episode "Cats and Dogs" (SeasonInfo 1 4) (Just 2006) (BroadcastYear 2006)]), (P.Series (Series "#7DaysLater" (Just 2013) (BroadcastYears 2013 Nothing) []))]
+      let result = Right [P.Series (Series "#1 Single" (Just 2006) (BroadcastYears 2006 Nothing) [Episode "Cats and Dogs" (SeasonInfo 1 4) (Just 2006) (BroadcastYear $ Just 2006) False] False), (P.Series (Series "#7DaysLater" (Just 2013) (BroadcastYears 2013 Nothing) [] False))]
       (parseOnly (many' seriesParser) input) `shouldBe` result
 
   describe "Parser.movieHeadParser" $ do
@@ -98,15 +103,15 @@ main = hspec $ do
   describe "Parsers.movieishParser" $ do
     it "parses a TV movie" $ do
       let input = "Libertad (Mar del Plata) (1999) (TV) \t\t\t\t 1999\n"
-      let result = Right (P.TV (Movie "Libertad (Mar del Plata)" (Just 1999) 1999))
+      let result = Right (P.TV (Movie "Libertad (Mar del Plata)" (Just 1999) (Just 1999) False))
       (parseOnly movieishParser input) `shouldBe` result
 
     it "parses a cinema movie" $ do
       let input = "Fight Club (1999) \t\t\t\t 1999\n"
-      let result = Right (P.Cinema (Movie "Fight Club" (Just 1999) 1999))
+      let result = Right (P.Cinema (Movie "Fight Club" (Just 1999) (Just 1999) False))
       (parseOnly movieishParser input) `shouldBe` result
 
     it "parses a videogame" $ do
       let input = "Zool 2 (1993) (VG) \t\t\t\t\t 1993\n"
-      let result = Right (P.VideoGame (V.VideoGame "Zool 2" (Just 1993) 1993))
+      let result = Right (P.VideoGame (V.VideoGame "Zool 2" (Just 1993) (Just 1993) False))
       (parseOnly movieishParser input) `shouldBe` result

@@ -3,5 +3,6 @@ import Types.Simple
 
 data Movie = Movie { title :: Title
                    , productionYear :: ProductionYear
-                   , releaseYear :: Year
+                   , releaseYear :: Maybe Year
+                   , isSuspended :: Bool
                    } deriving (Show, Eq)

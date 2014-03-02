@@ -6,7 +6,7 @@ type Year = Integer
 type ProductionYear = Maybe Year
 type Index = Maybe Text
 
-data BroadcastInfo = BroadcastYear Year
+data BroadcastInfo = BroadcastYear (Maybe Year)
                    | BroadcastYears Year (Maybe Year)
                      deriving (Show, Eq)
 
