@@ -2,7 +2,7 @@
 
 module Parsers where
 import Types
-import Data.Attoparsec.Text
+import Data.Attoparsec.Text.Lazy
 import Data.Text
 import Data.Attoparsec.Combinator
 import Control.Applicative
