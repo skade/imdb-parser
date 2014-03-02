@@ -3,7 +3,7 @@ import Types.Simple
 import Types.SeasonInfo
 
 data Episode = Episode { title :: Title
-                       , season_info :: SeasonInfo
-                       , prodYear :: ProductionYear
+                       , seasonInfo :: SeasonInfo
+                       , productionYear :: ProductionYear
                        , broadcastYear :: BroadcastInfo
                        } deriving (Show, Eq)
