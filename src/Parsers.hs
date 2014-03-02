@@ -1,6 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Parsers where
+module Parsers (seasonInfoParser,
+                episodeInfoParser,
+                productionYearParser,
+                broadcastInfoParser,
+                seriesTitleParser,
+                episodeParser,
+                seriesParser,
+                movieHeadParser,
+                movieParser) where
 import Types
 import Data.Attoparsec.Text.Lazy
 import Data.Text
@@ -8,6 +16,8 @@ import Data.Attoparsec.Combinator
 import Control.Applicative
 import Data.Either
 import Data.Char (isSpace)
+
+dash = char '-'
 
 seasonInfoParser :: Parser SeasonInfo
 seasonInfoParser = SeasonInfo
@@ -27,8 +37,6 @@ productionYearParser = skipSpace *> char '(' *> decimal <* char ')'
 
 broadcastYearParser :: Parser BroadcastInfo
 broadcastYearParser = BroadcastYear <$> decimal
-
-dash = char '-'
 
 broadcastYearsParser :: Parser BroadcastInfo
 broadcastYearsParser = BroadcastYears
