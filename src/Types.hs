@@ -23,9 +23,9 @@ data BroadcastInfo = BroadcastYear Year
                      deriving (Show, Eq)
 
 data Series = Series { name :: Title
-                     , episodes :: [Episode]
                      , productionYear :: ProductionYear
                      , broadcastYears :: BroadcastInfo
+                     , episodes :: [Episode]
                      } deriving (Show, Eq)
 
 data Movie = Movie { mtitle :: Title

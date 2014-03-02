@@ -10,91 +10,62 @@ import Data.Either
 import Data.Char (isSpace)
 
 seasonInfoParser :: Parser SeasonInfo
-seasonInfoParser = do
-    sea <- decimal
-    char '.'
-    ep <- decimal
-    return $ SeasonInfo sea ep
+seasonInfoParser = SeasonInfo
+                   <$> (decimal <* char '.')
+                   <*> decimal
 
 episodeInfoParser :: Parser (Title, SeasonInfo)
-episodeInfoParser = do
-    char '{'
-    skipSpace
-    title <- (manyTill anyChar (try (string "(#")))
-    seasonInfo <- seasonInfoParser
-    char ')'
-    char '}'
-    return $ ((stripEnd (pack title)), seasonInfo)
+episodeInfoParser = createTuple
+                    <$> (char '{' *> skipSpace *> title)
+                    <*> (seasonInfoParser <* char ')' <* char '}')
+    where
+      createTuple title info = ((stripEnd (pack title)), info)
+      title = manyTill anyChar (try (string "(#"))
 
 productionYearParser :: Parser ProductionYear
-productionYearParser = do
-    skipSpace
-    char '('
-    year <- decimal
-    char ')'
-    return year
+productionYearParser = skipSpace *> char '(' *> decimal <* char ')'
 
 broadcastYearParser :: Parser BroadcastInfo
-broadcastYearParser = do
-    y <- decimal
-    return $ BroadcastYear y
+broadcastYearParser = BroadcastYear <$> decimal
+
+dash = char '-'
 
 broadcastYearsParser :: Parser BroadcastInfo
-broadcastYearsParser = do
-    beg <- decimal
-    char '-'
-    end <- decimal
-    return $ BroadcastYears beg (Just end)
+broadcastYearsParser = BroadcastYears
+                       <$> (decimal <* dash)
+                       <*> (Just <$> decimal)
 
 broadcastYearsParserOpenEnd :: Parser BroadcastInfo
-broadcastYearsParserOpenEnd = do
-    beg <- decimal
-    string "-????"
-    return $ BroadcastYears beg Nothing
+broadcastYearsParserOpenEnd = createOpenEndYears <$> (decimal <* string "-????")
+  where
+    createOpenEndYears beg = BroadcastYears beg Nothing
 
 broadcastInfoParser :: Parser BroadcastInfo
 broadcastInfoParser = (broadcastYearsParser <|> broadcastYearsParserOpenEnd <|> broadcastYearParser)
 
 seriesTitleParser :: Parser Title
-seriesTitleParser = do
-    char '"'
-    title <- (manyTill anyChar (try (char '"')))
-    return $ pack title
+seriesTitleParser = pack <$> (char '"' *> (manyTill anyChar (try (char '"'))))
 
 seriesParser :: Parser Series
-seriesParser = do
-    t <- seriesTitleParser
-    skipSpace
-    prod <- productionYearParser
-    skipSpace
-    byears <- broadcastInfoParser
-    endOfLine
-    episodes <- many' episodeParser
-    return $ Series t episodes prod byears
+seriesParser = Series
+               <$> (seriesTitleParser <* skipSpace)
+               <*> (productionYearParser <* skipSpace)
+               <*> (broadcastInfoParser <* endOfLine)
+               <*> (many' episodeParser)
 
 episodeParser :: Parser Episode
-episodeParser = do
-    seriesTitleParser
-    skipSpace
-    prod <- productionYearParser
-    skipSpace
-    (t,sinfo) <- episodeInfoParser
-    skipSpace
-    byear <- broadcastInfoParser
-    endOfLine
-    return $ Episode t sinfo prod byear
+episodeParser = createEpisode
+                <$> (seriesTitleParser *> skipSpace *> productionYearParser)
+                <*> (skipSpace *> episodeInfoParser)
+                <*> (skipSpace *> broadcastInfoParser <* endOfLine)
+  where
+    createEpisode prodYear (title,sinfo) byear = Episode title sinfo prodYear byear
 
 fragment :: Parser Text
-fragment = do
-    skipSpace
-    t <- takeTill isSpace
-    return t
+fragment = skipSpace *> takeTill isSpace
 
 pYear :: Parser ProductionYear
-pYear = do
-    skipSpace
-    year <- productionYearParser
-    return year
+pYear = skipSpace *> productionYearParser
 
 data MovieHead = Cons Text MovieHead | Final ProductionYear deriving(Show,Eq)
 
@@ -111,9 +82,7 @@ construct e = (strip(title e), year e)
       year (Final y) = y
 
 movieHeadParser :: Parser (Title, ProductionYear)
-movieHeadParser = do
-    expr <- movieHeadParser'
-    return $ construct expr
+movieHeadParser = construct <$> movieHeadParser'
 
 releaseTypeParser :: Parser ReleaseType
 releaseTypeParser = do
@@ -124,10 +93,9 @@ releaseTypeParser = do
       <|> (string "" >> return Cinema)
 
 movieParser :: Parser Movie
-movieParser = do
-    (t,p) <- movieHeadParser
-    r <- releaseTypeParser
-    skipSpace
-    ry <- decimal
-    endOfLine
-    return $ Movie t p ry r
+movieParser = createMovie
+              <$> movieHeadParser
+              <*> (releaseTypeParser <* skipSpace)
+              <*> (decimal <* endOfLine)
+    where
+      createMovie (t,p) r ry = Movie t p ry r

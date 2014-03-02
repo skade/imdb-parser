@@ -54,28 +54,28 @@ main = hspec $ do
   describe "Parser.seriesTitleParser" $ do
     it "parses a series line" $ do
       let input = "\"!Next?\" (1994) \t\t\t\t 1994-1995\n"
-      let result = Right (Series "!Next?" [] 1994 (BroadcastYears 1994 (Just 1995)))
+      let result = Right (Series "!Next?" 1994 (BroadcastYears 1994 (Just 1995)) [])
       (parseOnly seriesParser input) `shouldBe` result
 
     it "parses a series line with a single year" $ do
       let input = "\"!Next?\" (1994) \t\t\t\t 1994\n"
-      let result = Right (Series "!Next?" [] 1994 (BroadcastYear 1994))
+      let result = Right (Series "!Next?" 1994 (BroadcastYear 1994) [])
       (parseOnly seriesParser input) `shouldBe` result
 
     it "parses a series line and an episodes line" $ do
       let input = "\"#1 Single\" (2006) \t\t\t\t 2006-????\n\"#1 Single\" (2006) {Cats and Dogs (#1.4)} \t\t\t 2006\n"
-      let result = Right (Series "#1 Single" [Episode "Cats and Dogs" (SeasonInfo 1 4) 2006 (BroadcastYear 2006)] 2006 (BroadcastYears 2006 Nothing))
+      let result = Right (Series "#1 Single" 2006 (BroadcastYears 2006 Nothing) [Episode "Cats and Dogs" (SeasonInfo 1 4) 2006 (BroadcastYear 2006)])
       (parseOnly seriesParser input) `shouldBe` result
 
     it "parses a series line and an episodes line and doesn't continue to the next line" $ do
       let input = "\"#1 Single\" (2006) \t\t\t\t 2006-????\n\"#1 Single\" (2006) {Cats and Dogs (#1.4)} \t\t\t 2006\n\"#7DaysLater\" (2013) \t\t\t\t 2013-????"
-      let result = Right (Series "#1 Single" [Episode "Cats and Dogs" (SeasonInfo 1 4) 2006 (BroadcastYear 2006)] 2006 (BroadcastYears 2006 Nothing))
+      let result = Right (Series "#1 Single" 2006 (BroadcastYears 2006 Nothing) [Episode "Cats and Dogs" (SeasonInfo 1 4) 2006 (BroadcastYear 2006)])
       (parseOnly seriesParser input) `shouldBe` result
 
   describe "many' Parsers.seriesParser" $ do
     it "parses multiple series" $ do
       let input = "\"#1 Single\" (2006) \t\t\t\t 2006-????\n\"#1 Single\" (2006) {Cats and Dogs (#1.4)} \t\t\t 2006\n\"#7DaysLater\" (2013) \t\t\t\t 2013-????\n"
-      let result = Right [Series "#1 Single" [Episode "Cats and Dogs" (SeasonInfo 1 4) 2006 (BroadcastYear 2006)] 2006 (BroadcastYears 2006 Nothing),Series "#7DaysLater" [] 2013 (BroadcastYears 2013 Nothing)]
+      let result = Right [Series "#1 Single" 2006 (BroadcastYears 2006 Nothing) [Episode "Cats and Dogs" (SeasonInfo 1 4) 2006 (BroadcastYear 2006)],Series "#7DaysLater" 2013 (BroadcastYears 2013 Nothing) []]
       (parseOnly (many' seriesParser) input) `shouldBe` result
 
   describe "Parser.movieHeadParser" $ do
